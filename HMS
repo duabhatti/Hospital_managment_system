@@ -1,0 +1,226 @@
+import java.util.Scanner;
+
+// ---------------------------------------------------------
+// 1. Abstraction & Interface
+// ---------------------------------------------------------
+interface Assignable {
+    void assignToWard(String wardName);
+}
+
+// Abstract Base Class
+abstract class Person {
+    protected String name;
+    protected int id;
+    protected int age;
+
+    public Person(String name, int id, int age) {
+        this.name = name;
+        this.id = id;
+        this.age = age;
+    }
+
+    // Abstract method for Polymorphism
+    public abstract void displayInfo();
+    
+    public int getId() { return id; }
+    public String getName() { return name; }
+}
+
+// ---------------------------------------------------------
+// 2. Inheritance & Encapsulation (Classes)
+// ---------------------------------------------------------
+
+class Doctor extends Person implements Assignable {
+    private String specialization;
+    private String assignedWard = "None";
+
+    public Doctor(String name, int id, int age, String specialization) {
+        super(name, id, age);
+        this.specialization = specialization;
+    }
+
+    // Polymorphism: Assigning a Doctor means they work there
+    @Override
+    public void assignToWard(String wardName) {
+        this.assignedWard = wardName;
+        System.out.println("Doctor " + name + " is now on duty in " + wardName);
+    }
+
+    @Override
+    public void displayInfo() {
+        System.out.println("DOCTOR | ID: " + id + " | Name: " + name + " | Spec: " + specialization + " | Ward: " + assignedWard);
+    }
+}
+
+class Staff extends Person implements Assignable {
+    private String role;
+    private String assignedWard = "None";
+
+    public Staff(String name, int id, int age, String role) {
+        super(name, id, age);
+        this.role = role;
+    }
+
+    // Polymorphism: Assigning Staff means they maintain the ward
+    @Override
+    public void assignToWard(String wardName) {
+        this.assignedWard = wardName;
+        System.out.println("Staff " + name + " assigned to maintenance in " + wardName);
+    }
+
+    @Override
+    public void displayInfo() {
+        System.out.println("STAFF  | ID: " + id + " | Name: " + name + " | Role: " + role + " | Ward: " + assignedWard);
+    }
+}
+
+class Patient extends Person implements Assignable {
+    private String diagnosis;
+    private String assignedWard = "Waiting Room";
+    private String assignedDoctor = "None";
+
+    public Patient(String name, int id, int age, String diagnosis) {
+        super(name, id, age);
+        this.diagnosis = diagnosis;
+    }
+
+    public void setDoctor(String docName) {
+        this.assignedDoctor = docName;
+    }
+
+    // Polymorphism: Assigning a Patient means they are admitted there
+    @Override
+    public void assignToWard(String wardName) {
+        this.assignedWard = wardName;
+        System.out.println("Patient " + name + " admitted to bed in " + wardName);
+    }
+
+    @Override
+    public void displayInfo() {
+        System.out.println("PATIENT| ID: " + id + " | Name: " + name + " | Diagnosis: " + diagnosis);
+        System.out.println("       -> Admitted to: " + assignedWard + " | Doctor: " + assignedDoctor);
+    }
+}
+
+// ---------------------------------------------------------
+// 3. Main Management System (Using Arrays)
+// ---------------------------------------------------------
+public class HospitalSystem {
+    // Fixed Arrays (Easy to understand)
+    static Doctor[] doctors = new Doctor[10];
+    static Patient[] patients = new Patient[10];
+    static int docCount = 0;
+    static int patCount = 0;
+    
+    static Scanner sc = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        while (true) {
+            System.out.println("\n=== HOSPITAL MANAGEMENT SYSTEM ===");
+            System.out.println("1. Admit New Patient");
+            System.out.println("2. Add New Doctor");
+            System.out.println("3. Assign Doctor to Patient");
+            System.out.println("4. View All Records (Report)");
+            System.out.println("5. Exit");
+            System.out.print("Select Option: ");
+
+            int choice = sc.nextInt();
+            sc.nextLine(); // fix scanner bug
+
+            switch (choice) {
+                case 1: admitPatient(); break;
+                case 2: addDoctor(); break;
+                case 3: assignDoctorToPatient(); break;
+                case 4: viewRecords(); break;
+                case 5: System.out.println("Exiting..."); return;
+                default: System.out.println("Invalid Option");
+            }
+        }
+    }
+
+    public static void admitPatient() {
+        if (patCount >= patients.length) { System.out.println("Hospital Full."); return; }
+        
+        System.out.print("Enter Patient Name: ");
+        String name = sc.nextLine();
+        System.out.print("Enter ID: ");
+        int id = sc.nextInt();
+        System.out.print("Enter Age: ");
+        int age = sc.nextInt();
+        sc.nextLine(); // fix scanner
+        System.out.print("Enter Diagnosis: ");
+        String diag = sc.nextLine();
+        
+        System.out.print("Assign to Ward (ICU/General): ");
+        String ward = sc.nextLine();
+
+        // Create Object
+        Patient p = new Patient(name, id, age, diag);
+        // Use Interface Method
+        p.assignToWard(ward);
+        
+        // Save to Array
+        patients[patCount] = p;
+        patCount++;
+    }
+
+    public static void addDoctor() {
+        if (docCount >= doctors.length) { System.out.println("Staff List Full."); return; }
+
+        System.out.print("Enter Doctor Name: ");
+        String name = sc.nextLine();
+        System.out.print("Enter ID: ");
+        int id = sc.nextInt();
+        System.out.print("Enter Age: ");
+        int age = sc.nextInt();
+        sc.nextLine(); // fix scanner
+        System.out.print("Enter Specialization: ");
+        String spec = sc.nextLine();
+        
+        System.out.print("Assign to Ward (ICU/General): ");
+        String ward = sc.nextLine();
+
+        Doctor d = new Doctor(name, id, age, spec);
+        d.assignToWard(ward); // Doctor is assigned to work there
+        
+        doctors[docCount] = d;
+        docCount++;
+    }
+
+    public static void assignDoctorToPatient() {
+        System.out.print("Enter Patient ID to assign doctor: ");
+        int pId = sc.nextInt();
+        System.out.print("Enter Doctor ID to assign: ");
+        int dId = sc.nextInt();
+
+        Patient foundP = null;
+        Doctor foundD = null;
+
+        // Search Arrays
+        for(int i=0; i<patCount; i++) {
+            if(patients[i].getId() == pId) foundP = patients[i];
+        }
+        for(int i=0; i<docCount; i++) {
+            if(doctors[i].getId() == dId) foundD = doctors[i];
+        }
+
+        if(foundP != null && foundD != null) {
+            foundP.setDoctor(foundD.getName());
+            System.out.println("Success: Dr. " + foundD.getName() + " assigned to " + foundP.getName());
+        } else {
+            System.out.println("Error: ID not found.");
+        }
+    }
+
+    public static void viewRecords() {
+        System.out.println("\n--- HOSPITAL REPORT ---");
+        System.out.println("Doctors on Duty:");
+        for(int i=0; i<docCount; i++) {
+            doctors[i].displayInfo();
+        }
+        System.out.println("\nAdmitted Patients:");
+        for(int i=0; i<patCount; i++) {
+            patients[i].displayInfo();
+        }
+    }
+}
